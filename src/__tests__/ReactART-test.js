@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Facebook, Inc.
+ * Copyright (c) 2013-present Facebook, Inc.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -14,7 +14,7 @@
 'use strict';
 
 jest
-  .dontMock('ReactART');
+  .unmock('ReactART');
 
 var React = require('react');
 var ReactDOM = require('react-dom');
@@ -180,6 +180,34 @@ describe('ReactART', function() {
     };
 
     testDOMNodeStructure(realNode, expectedNewStructure);
+  });
+
+  it('should be able to reorder many components', function() {
+    var container = document.createElement('div');
+
+    var Component = React.createClass({
+      render: function() {
+        var chars = this.props.chars.split('');
+        return (
+          <Surface>
+            {chars.map((text) => <Shape key={text} title={text} />)}
+          </Surface>
+        );
+      },
+    });
+
+    // Mini multi-child stress test: lots of reorders, some adds, some removes.
+    var before = 'abcdefghijklmnopqrst';
+    var after = 'mxhpgwfralkeoivcstzy';
+
+    var instance = ReactDOM.render(<Component chars={before} />, container);
+    var realNode = ReactDOM.findDOMNode(instance);
+    expect(realNode.textContent).toBe(before);
+
+    instance = ReactDOM.render(<Component chars={after} />, container);
+    expect(realNode.textContent).toBe(after);
+
+    ReactDOM.unmountComponentAtNode(container);
   });
 
   it('renders composite with lifecycle inside group', function() {
